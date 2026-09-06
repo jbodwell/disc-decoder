@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Disc Decoder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --canopy:#1c2a20;
+    --canopy-2:#243429;
+    --tan:#e7ddc4;
+    --tan-2:#d8caa4;
+    --ink:#1c1a14;
+    --chalk:#f4efe0;
+    --rust:#b5502c;
+    --rust-dim:#8a3d22;
+    --teal:#2f7a6b;
+    --teal-dim:#1f5348;
+    --gold:#c99a3c;
+    --line: rgba(244,239,224,0.16);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--canopy);
+    color:var(--chalk);
+    font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.5;
+  }
+  .page{max-width:920px;margin:0 auto;padding:0 20px 80px;}
+  h1,h2,h3{font-family:'Big Shoulders Display', sans-serif; text-transform:uppercase; letter-spacing:0.02em; margin:0;}
+  .mono{font-family:'IBM Plex Mono', monospace;}
+
+  /* ---- Hero ---- */
+  .hero{padding:56px 0 36px; border-bottom:1px dashed var(--line);}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px; letter-spacing:0.16em; color:var(--gold);
+    margin-bottom:14px;
+  }
+  .hero h1{font-size:clamp(44px,9vw,84px); font-weight:800; line-height:0.9; color:var(--chalk);}
+  .hero-sub{max-width:560px; color:var(--tan); font-size:16px; margin-top:18px;}
+  .hand-toggle{display:flex; gap:8px; margin-top:26px; flex-wrap:wrap;}
+  .hand-toggle button{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.05em;
+    background:transparent; border:1px solid var(--line); color:var(--tan);
+    padding:9px 14px; border-radius:2px; cursor:pointer; transition:all .15s ease;
+  }
+  .hand-toggle button.active{background:var(--gold); border-color:var(--gold); color:var(--ink); font-weight:600;}
+
+  section{padding:52px 0; border-bottom:1px dashed var(--line);}
+  section:last-child{border-bottom:none;}
+  section h2{font-size:clamp(26px,4vw,36px); color:var(--chalk); margin-bottom:6px;}
+  .section-kicker{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--gold); letter-spacing:0.14em; margin-bottom:8px;}
+
+  /* ---- Explainer ---- */
+  .explain-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:24px;}
+  .explain-card{background:var(--canopy-2); border:1px solid var(--line); border-radius:6px; padding:22px;}
+  .explain-card .glyph{width:100%; display:flex; justify-content:center;}
+  .explain-card h3{font-size:22px; color:var(--chalk); margin-top:10px; display:flex; align-items:baseline; gap:10px;}
+  .explain-card .range{font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--tan-2); text-transform:none; font-weight:500;}
+  .explain-card p{color:var(--tan); font-size:14.5px; margin-top:8px;}
+  .explain-card.turn h3{color:var(--teal);}
+  .explain-card.fade h3{color:var(--rust);}
+  .explain-card.turn svg path{stroke:var(--teal);}
+  .explain-card.fade svg path{stroke:var(--rust);}
+
+  .trail-note{
+    margin-top:22px; padding:16px 18px; border-left:3px solid var(--gold);
+    background:rgba(201,154,60,0.08); font-size:14.5px; color:var(--tan);
+  }
+  .trail-note strong{color:var(--gold); display:block; margin-bottom:4px; font-family:'IBM Plex Mono',monospace; letter-spacing:0.04em; font-size:13px;}
+
+  /* ---- Decoder ---- */
+  .decoder-grid{display:grid; grid-template-columns:1fr 1.1fr; gap:32px; margin-top:26px; align-items:start;}
+  .controls{display:flex; flex-direction:column; gap:20px;}
+  .control label{display:flex; flex-direction:column; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.06em; color:var(--tan-2);}
+  #disc-preset{
+    width:100%; background:var(--canopy-2); border:1px solid var(--line); color:var(--chalk);
+    font-family:'IBM Plex Sans',sans-serif; font-size:14px; padding:9px 10px; border-radius:4px; margin-top:2px;
+  }
+  .preset-note{font-family:'IBM Plex Sans',sans-serif; font-size:12.5px; color:var(--tan-2); text-transform:none; letter-spacing:0; margin:8px 0 0; line-height:1.4;}
+  .compare-strip{display:flex; gap:10px; overflow-x:auto; padding:22px 0 6px; margin-top:6px;}
+  .compare-item{flex:0 0 auto; text-align:center; width:78px;}
+  .compare-item .glyph-mini{display:flex; justify-content:center;}
+  .compare-item .name{font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--tan-2); margin-top:4px; letter-spacing:0.02em;}
+  .control-row{display:flex; justify-content:space-between; align-items:center;}
+  .control-row .val{color:var(--chalk); font-size:15px; font-weight:600;}
+  input[type=range]{
+    -webkit-appearance:none; width:100%; height:3px; background:var(--line); border-radius:2px; outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:var(--gold); cursor:pointer; border:2px solid var(--canopy);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:16px; height:16px; border-radius:50%; background:var(--gold); cursor:pointer; border:2px solid var(--canopy);
+  }
+  .readout{background:var(--canopy-2); border:1px solid var(--line); border-radius:6px; padding:24px; text-align:center;}
+  .glyph-large{display:flex; justify-content:center; margin-bottom:6px;}
+  .stability-tag{
+    display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:13px; letter-spacing:0.1em;
+    padding:6px 14px; border-radius:999px; margin-top:6px; font-weight:600;
+  }
+  .stability-tag.understable{background:rgba(47,122,107,0.18); color:var(--teal); border:1px solid var(--teal-dim);}
+  .stability-tag.stable{background:rgba(201,154,60,0.18); color:var(--gold); border:1px solid var(--gold);}
+  .stability-tag.overstable{background:rgba(181,80,44,0.18); color:var(--rust); border:1px solid var(--rust-dim);}
+  .advice-text{color:var(--tan); font-size:14.5px; margin-top:14px; text-align:left;}
+  .advice-text b{color:var(--chalk);}
+
+  /* ---- Factor grid ---- */
+  .factor-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:24px;}
+  .factor-card{background:var(--canopy-2); border:1px solid var(--line); border-radius:6px; padding:18px;}
+  .factor-card .ficon{width:34px; height:34px; margin-bottom:10px;}
+  .factor-card h4{font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:0.06em; color:var(--gold); text-transform:uppercase; margin:0 0 6px;}
+  .factor-card p{font-size:13.5px; color:var(--tan); margin:0;}
+  .factor-card.priority{border-color:var(--gold);}
+
+  /* ---- Marking system ---- */
+  .rim-demo{display:flex; gap:28px; flex-wrap:wrap; margin-top:26px; align-items:flex-start;}
+  .rim{
+    width:150px; height:150px; border-radius:50%; border:10px solid var(--tan-2);
+    background:radial-gradient(circle at 35% 30%, #efe6cc, #d8caa4);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative;
+  }
+  .rim .mark{position:absolute; font-family:'IBM Plex Mono',monospace; font-weight:600; color:var(--ink);}
+  .legend-list{flex:1; min-width:240px;}
+  .legend-item{display:flex; gap:14px; align-items:flex-start; margin-bottom:16px;}
+  .legend-glyph{width:36px; flex-shrink:0;}
+  .legend-item h4{margin:0 0 3px; font-size:14px; color:var(--chalk); font-family:'IBM Plex Sans'; text-transform:none; font-weight:600;}
+  .legend-item p{margin:0; font-size:13.5px; color:var(--tan);}
+
+  @media (max-width:720px){
+    .explain-grid, .decoder-grid, .factor-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="hero">
+    <div class="eyebrow">FIELD NOTES · INNOVA FLIGHT NUMBERS</div>
+    <h1>THE DISC<br>DECODER</h1>
+    <p class="hero-sub">Speed and Glide you've already got. This is for Turn and Fade — what they actually mean, why the scale looks broken, and what a little curved line on your disc can tell you faster than the numbers can.</p>
+    <div class="hand-toggle">
+      <button data-hand="RH" class="active">I throw backhand, right-handed</button>
+      <button data-hand="LH">I throw backhand, left-handed</button>
+    </div>
+  </header>
+
+  <section class="explainer">
+    <div class="section-kicker">01 — THE CONCEPT</div>
+    <h2>Two numbers, two different moments</h2>
+    <div class="explain-grid">
+      <div class="explain-card turn">
+        <div class="glyph" id="glyph-turn-example"></div>
+        <h3>Turn <span class="range">+1 → −5</span></h3>
+        <p>What happens early — while the disc is still fast and spinning hard. A low (negative) number means it wants to roll over toward your anhyzer side. A number near +1 means it just refuses to.</p>
+      </div>
+      <div class="explain-card fade">
+        <div class="glyph" id="glyph-fade-example"></div>
+        <h3>Fade <span class="range">0 → 5</span></h3>
+        <p>What happens late — once the disc has slowed down and lost its gyroscopic fight against gravity. A high number means a hard hook back to the left at the very end. Zero means it just dies straight.</p>
+      </div>
+    </div>
+    <aside class="trail-note">
+      <strong>Why the scale is +1 to −5, not something clean like 0–10</strong>
+      Innova built this system by feel, not physics — pros rating discs against each other, not a measured unit like degrees. Turn and Fade aren't even the same kind of thing: Turn measures resistance, so most discs cluster near "doesn't turn much," which is why the positive side is short (it tops out at +1). Fade only ever has one direction to describe, so it just runs 0 up to "a lot." The lopsided ranges reflect what actually varies across real discs, not a formula. Don't look for hidden meaning in the exact numbers — just get a feel for where a disc sits relative to your other ones.
+    </aside>
+  </section>
+
+  <section class="decoder">
+    <div class="section-kicker">02 — TRY IT</div>
+    <h2>Decode any disc</h2>
+    <div class="decoder-grid">
+      <div class="controls">
+        <div class="control">
+          <div class="control-row"><label>YOUR DISC</label></div>
+          <select id="disc-preset">
+            <option value="">— Custom / type your own —</option>
+            <option value="Roadrunner|9|5|-4|1">Roadrunner — 9 / 5 / −4 / 1</option>
+            <option value="Leopard|6|5|-2|1">Leopard — 6 / 5 / −2 / 1</option>
+            <option value="Valkyrie|9|4|-2|2">Valkyrie — 9 / 4 / −2 / 2</option>
+            <option value="Wraith|11|5|-1|3">Wraith — 11 / 5 / −1 / 3</option>
+            <option value="Colt|3|4|-1|1">Colt — 3 / 4 / −1 / 1</option>
+            <option value="Mako3|5|5|0|0">Mako3 — 5 / 5 / 0 / 0</option>
+            <option value="Aviar|2|3|0|1">Aviar — 2 / 3 / 0 / 1</option>
+            <option value="Roc3|5|4|0|3">Roc3 — 5 / 4 / 0 / 3</option>
+            <option value="Firebird|9|3|0|4">Firebird — 9 / 3 / 0 / 4</option>
+          </select>
+          <p class="preset-note">Numbers pulled straight from innovadiscs.com. Pick one, or drag the sliders below for any other disc.</p>
+        </div>
+        <div class="control">
+          <div class="control-row"><label>SPEED</label><span class="val" id="speed-val">7</span></div>
+          <input type="range" id="speed" min="1" max="14" step="1" value="7">
+        </div>
+        <div class="control">
+          <div class="control-row"><label>GLIDE</label><span class="val" id="glide-val">5</span></div>
+          <input type="range" id="glide" min="1" max="7" step="1" value="5">
+        </div>
+        <div class="control">
+          <div class="control-row"><label>TURN</label><span class="val" id="turn-val">-1</span></div>
+          <input type="range" id="turn" min="-5" max="1" step="1" value="-1">
+        </div>
+        <div class="control">
+          <div class="control-row"><label>FADE</label><span class="val" id="fade-val">2</span></div>
+          <input type="range" id="fade" min="0" max="5" step="1" value="2">
+        </div>
+      </div>
+      <div class="readout">
+        <div class="glyph-large" id="glyph-live"></div>
+        <div class="stability-tag" id="stability-tag"></div>
+        <div class="advice-text" id="advice-text"></div>
+      </div>
+    </div>
+    <div class="compare-strip" id="compare-strip"></div>
+  </section>
+
+  <section class="beyond">
+    <div class="section-kicker">03 — WHAT THE NUMBERS ASSUME</div>
+    <h2>The four numbers don't tell you</h2>
+    <p style="color:var(--tan); max-width:600px; margin-top:6px;">The stamped numbers describe one disc, fresh out of the box, thrown flat with enough arm speed to actually reach its rated Speed. Change any of those conditions and the real flight moves.</p>
+    <div class="factor-grid">
+      <div class="factor-card priority">
+        <svg class="ficon" viewBox="0 0 40 40"><path d="M4 32 L16 18 L24 24 L36 8" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="36" cy="8" r="2.5" fill="var(--gold)"/></svg>
+        <h4>Arm speed vs. rated speed</h4>
+        <p>The biggest one. If you can't generate the speed a disc is rated for, it never gets to Turn — it just fades early and flies more overstable than the numbers promise. Way more common than people think.</p>
+      </div>
+      <div class="factor-card">
+        <svg class="ficon" viewBox="0 0 40 40"><circle cx="20" cy="20" r="14" fill="none" stroke="var(--teal)" stroke-width="2.5"/><path d="M20 10 L20 20 L27 24" stroke="var(--teal)" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>
+        <h4>Wear / plastic</h4>
+        <p>Every disc gets more understable as it beats in. Base plastics (DX, Pro) soften and shift faster than premium blends (Champion, Star), which hold their numbers longer.</p>
+      </div>
+      <div class="factor-card">
+        <svg class="ficon" viewBox="0 0 40 40"><path d="M12 30 Q20 8 28 30 Z" fill="none" stroke="var(--tan)" stroke-width="2.5" stroke-linejoin="round"/></svg>
+        <h4>Weight</h4>
+        <p>A lighter copy of the same mold flies a touch more understable; max-weight tends to run more overstable. Two 173g and 150g discs of the same mold aren't identical flyers.</p>
+      </div>
+      <div class="factor-card">
+        <svg class="ficon" viewBox="0 0 40 40"><ellipse cx="20" cy="24" rx="14" ry="5" fill="none" stroke="var(--rust)" stroke-width="2.5"/><path d="M20 24 L20 8" stroke="var(--rust)" stroke-width="2.5" stroke-linecap="round"/><path d="M20 8 L16 12 M20 8 L24 12" stroke="var(--rust)" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>
+        <h4>Nose angle</h4>
+        <p>Nose-up on release kills glide and shortens everything. Nose-down adds speed and turn, and can turf a disc into the ground early. This is about your release, not the disc.</p>
+      </div>
+      <div class="factor-card">
+        <svg class="ficon" viewBox="0 0 40 40"><path d="M6 20 L34 20" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"/><path d="M20 20 L20 8" stroke="var(--gold)" stroke-width="2.5" stroke-dasharray="3 3"/></svg>
+        <h4>Release angle</h4>
+        <p>Hyzer or anhyzer at release stacks on top of the disc's own Turn/Fade. Anhyzer exaggerates turn, hyzer exaggerates fade — same disc, different shot shape.</p>
+      </div>
+      <div class="factor-card">
+        <svg class="ficon" viewBox="0 0 40 40"><path d="M4 14 Q14 8 20 14 T36 14" fill="none" stroke="var(--tan)" stroke-width="2.5"/><path d="M4 24 Q14 18 20 24 T36 24" fill="none" stroke="var(--tan)" stroke-width="2.5" opacity="0.5"/></svg>
+        <h4>Wind</h4>
+        <p>Headwind exaggerates turn on understable discs and can flip them hard. Tailwind kills lift and makes discs fade earlier — reach more overstable in a tailwind, more understable into the wind.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="marking">
+    <div class="section-kicker">04 — ON THE DISC</div>
+    <h2>What's actually worth writing on it</h2>
+    <p style="color:var(--tan); max-width:600px; margin-top:6px;">Innova already stamps Speed/Glide/Turn/Fade on the disc. What's missing is the at-a-glance read. Three small marks by the flight plate cover it:</p>
+    <div class="rim-demo">
+      <div class="rim">
+        <div class="mark" style="top:14px; left:50%; transform:translateX(-50%); font-size:11px;">‌</div>
+        <svg width="70" height="70" viewBox="0 0 100 100"><path d="M50 88 C50 60 68 60 68 8" fill="none" stroke="#1c1a14" stroke-width="4" stroke-linecap="round"/><circle cx="68" cy="8" r="4.5" fill="none" stroke="#1c1a14" stroke-width="3"/></svg>
+        <div class="mark" style="bottom:10px; left:14px; font-size:15px;">S</div>
+        <div class="mark" style="bottom:10px; right:14px; font-size:13px;">↗</div>
+      </div>
+      <div class="legend-list">
+        <div class="legend-item">
+          <svg class="legend-glyph" viewBox="0 0 40 60"><path d="M20 56 C20 34 30 34 30 8" fill="none" stroke="var(--gold)" stroke-width="3.5" stroke-linecap="round"/><circle cx="30" cy="8" r="3.5" fill="none" stroke="var(--gold)" stroke-width="2.5"/></svg>
+          <div>
+            <h4>The flight glyph</h4>
+            <p>A one-second sketch of the bow from the decoder above, ending in an open circle at the landing spot — the same convention Innova's own charts use. Faster to read mid-round than four digits.</p>
+          </div>
+        </div>
+        <div class="legend-item">
+          <svg class="legend-glyph" viewBox="0 0 40 40"><text x="8" y="28" font-family="IBM Plex Mono" font-weight="600" font-size="22" fill="var(--teal)">S</text></svg>
+          <div>
+            <h4>Stability letter</h4>
+            <p><span class="mono">U</span> understable, <span class="mono">S</span> stable, <span class="mono">O</span> overstable — the Turn+Fade sum, so you don't do the math standing on the tee.</p>
+          </div>
+        </div>
+        <div class="legend-item">
+          <svg class="legend-glyph" viewBox="0 0 40 40"><path d="M6 34 L34 6" stroke="var(--rust)" stroke-width="3.5" stroke-linecap="round"/><path d="M34 6 L26 6 M34 6 L34 14" stroke="var(--rust)" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg>
+          <div>
+            <h4>Go-to release arrow</h4>
+            <p>One small arrow for the shot you actually throw this disc on — flat, hyzer, or anhyzer — so the disc reminds you of its job, not just its numbers.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+// Calibrated against Innova's own published flight-path charts (9 discs
+// checked directly: Roadrunner, Leopard, Valkyrie, Wraith, Colt, Mako3,
+// Aviar, Roc3, Firebird). Two things their charts show that a naive
+// turn-then-fade S-curve gets wrong:
+//   1. None of them actually reverse direction. Every one is a single
+//      smooth bow, one way or the other (or dead straight) - never a
+//      right-then-left S.
+//   2. Turn and fade aren't equal-and-opposite. Turn acts for most of the
+//      flight (while the disc is fast); fade only acts in the last stretch
+//      (once it slows). So a disc like the Valkyrie (turn -2, fade 2) still
+//      visibly bows right, even though the raw numbers cancel to zero -
+//      turn simply gets more distance to work with. ~0.7/0.3 approximates
+//      that split.
+function netDrift(turn, fade){
+  const rightPull = Math.max(0, -turn);
+  const leftPull = fade;
+  return rightPull * 0.7 - leftPull * 0.3; // positive = bows right (RHBH)
+}
+
+function flightPoints(turn, fade, hand){
+  const sx=100, sy=232, endY=26;
+  const dir = hand === 'RH' ? 1 : -1;
+  let ex = sx + netDrift(turn, fade) * 32 * dir;
+  ex = Math.max(15, Math.min(185, ex)); // keep on-canvas for extreme slider values no real disc uses
+  return {start: {x:sx, y:sy}, end: {x:ex, y:endY}};
+}
+
+// A single "ease-in-out" cubic: vertical tangent at the tee, vertical
+// tangent arriving at the landing spot, bowing through the middle - this
+// is the shape every one of the real charts actually has.
+function flightPathD(turn, fade, hand){
+  const {start, end} = flightPoints(turn, fade, hand);
+  const h = start.y - end.y;
+  return `M ${start.x} ${start.y} `
+       + `C ${start.x} ${start.y - 0.5*h} ${end.x} ${end.y + 0.5*h} ${end.x} ${end.y}`;
+}
+
+function glyphSVG(turn, fade, hand, opts){
+  opts = opts || {};
+  const w = opts.w || 200, h = opts.h || 260;
+  const stroke = opts.stroke || 'var(--chalk)';
+  const {start, end} = flightPoints(turn, fade, hand);
+  const d = flightPathD(turn, fade, hand);
+  return `<svg width="${w}" height="${h}" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="${start.x}" cy="${start.y}" r="5" fill="${stroke}" opacity="0.5"/>
+    <path d="${d}" fill="none" stroke="${stroke}" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="${end.x}" cy="${end.y}" r="6" fill="none" stroke="${stroke}" stroke-width="3.5"/>
+  </svg>`;
+}
+
+let currentHand = 'RH';
+
+function stabilityInfo(turn, fade){
+  const sum = turn + fade;
+  if(sum < 0) return {cls:'understable', label:'UNDERSTABLE', color:'var(--teal)'};
+  if(sum >= 2) return {cls:'overstable', label:'OVERSTABLE', color:'var(--rust)'};
+  return {cls:'stable', label:'STABLE', color:'var(--gold)'};
+}
+
+function adviceFor(speed, glide, turn, fade){
+  const info = stabilityInfo(turn, fade);
+  let shot = '';
+  if(info.cls === 'understable'){
+    shot = `Give it a <b>flat or slightly anhyzer</b> release and let it turn — good for turnover shots, rollers, or hyzer-flips into a headwind. If you're newer to a strong arm speed, this is the forgiving end of the bag.`;
+  } else if(info.cls === 'overstable'){
+    shot = `Reliable on a <b>hyzer</b> line and into wind — it fights back rather than turning over. To throw it flat and straight you'll need real speed behind it, or it'll just fade left early.`;
+  } else {
+    shot = `The predictable middle — thrown flat, it should go roughly where you aim, with a gentle finish at the end.`;
+  }
+  let speedNote = '';
+  if(speed >= 9){
+    speedNote = ` At Speed ${speed}, remember this only turns as rated if you're actually reaching that speed — undercook the throw and it'll behave more overstable than shown here.`;
+  }
+  return shot + speedNote;
+}
+
+function renderLive(){
+  const speed = +document.getElementById('speed').value;
+  const glide = +document.getElementById('glide').value;
+  const turn = +document.getElementById('turn').value;
+  const fade = +document.getElementById('fade').value;
+
+  document.getElementById('speed-val').textContent = speed;
+  document.getElementById('glide-val').textContent = glide;
+  document.getElementById('turn-val').textContent = turn;
+  document.getElementById('fade-val').textContent = fade;
+
+  const info = stabilityInfo(turn, fade);
+  document.getElementById('glyph-live').innerHTML = glyphSVG(turn, fade, currentHand, {w:160, h:210, stroke: info.color});
+
+  const tag = document.getElementById('stability-tag');
+  tag.textContent = `${info.label}  ·  turn+fade = ${turn+fade}`;
+  tag.className = 'stability-tag ' + info.cls;
+
+  document.getElementById('advice-text').innerHTML = adviceFor(speed, glide, turn, fade);
+}
+
+document.querySelectorAll('.hand-toggle button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.hand-toggle button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentHand = btn.dataset.hand;
+    renderLive();
+    renderExamples();
+    renderCompareStrip();
+  });
+});
+
+function renderExamples(){
+  document.getElementById('glyph-turn-example').innerHTML = glyphSVG(-4, 0, currentHand, {w:130, h:170, stroke:'var(--teal)'});
+  document.getElementById('glyph-fade-example').innerHTML = glyphSVG(0, 4, currentHand, {w:130, h:170, stroke:'var(--rust)'});
+}
+
+['speed','glide','turn','fade'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{
+    document.getElementById('disc-preset').value = '';
+    renderLive();
+  });
+});
+
+document.getElementById('disc-preset').addEventListener('change', (e)=>{
+  if(!e.target.value) return;
+  const [name, speed, glide, turn, fade] = e.target.value.split('|');
+  document.getElementById('speed').value = speed;
+  document.getElementById('glide').value = glide;
+  document.getElementById('turn').value = turn;
+  document.getElementById('fade').value = fade;
+  renderLive();
+});
+
+// Verified straight from innovadiscs.com — sorted understable to overstable.
+const DISC_TABLE = [
+  {name:'Roadrunner', speed:9, glide:5, turn:-4, fade:1},
+  {name:'Leopard',    speed:6, glide:5, turn:-2, fade:1},
+  {name:'Valkyrie',   speed:9, glide:4, turn:-2, fade:2},
+  {name:'Colt',       speed:3, glide:4, turn:-1, fade:1},
+  {name:'Wraith',     speed:11,glide:5, turn:-1, fade:3},
+  {name:'Mako3',      speed:5, glide:5, turn:0,  fade:0},
+  {name:'Aviar',      speed:2, glide:3, turn:0,  fade:1},
+  {name:'Roc3',       speed:5, glide:4, turn:0,  fade:3},
+  {name:'Firebird',   speed:9, glide:3, turn:0,  fade:4}
+];
+
+function renderCompareStrip(){
+  const strip = document.getElementById('compare-strip');
+  strip.innerHTML = DISC_TABLE.map(d=>{
+    const info = stabilityInfo(d.turn, d.fade);
+    return `<div class="compare-item">
+      <div class="glyph-mini">${glyphSVG(d.turn, d.fade, currentHand, {w:64, h:84, stroke: info.color})}</div>
+      <div class="name">${d.name}</div>
+    </div>`;
+  }).join('');
+}
+
+renderLive();
+renderExamples();
+renderCompareStrip();
+</script>
+</body>
+</html>
