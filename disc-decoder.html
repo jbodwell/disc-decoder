@@ -171,9 +171,48 @@
   .m-cell.understable{border-top:2px solid var(--teal-dim);}
   .m-cell.stable{border-top:2px solid var(--gold);}
   .m-cell.overstable{border-top:2px solid var(--rust-dim);}
+  .m-cell{cursor:pointer; position:relative; transition:border-color .15s ease, transform .15s ease, background .15s ease;}
+  .m-cell:hover, .m-cell:focus-visible{transform:translateY(-2px); background:#26362b; outline:none;}
+  .m-cell.understable:hover, .m-cell.understable:focus-visible{border-color:var(--teal);}
+  .m-cell.stable:hover, .m-cell.stable:focus-visible{border-color:var(--gold);}
+  .m-cell.overstable:hover, .m-cell.overstable:focus-visible{border-color:var(--rust);}
+  .m-more{font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.06em; color:var(--tan-2); margin-top:9px; opacity:0.7;}
+  .m-cell:hover .m-more, .m-cell:focus-visible .m-more{color:var(--gold); opacity:1;}
+  .m-tiltmini{display:flex; justify-content:center; margin-top:8px;}
+
+  /* ---- Shot detail modal ---- */
+  .shot-modal{display:none; position:fixed; inset:0; z-index:50; align-items:center; justify-content:center; padding:20px;}
+  .shot-modal.open{display:flex;}
+  .shot-modal-backdrop{position:absolute; inset:0; background:rgba(10,16,12,0.74);}
+  .shot-modal-panel{
+    position:relative; z-index:1; width:100%; max-width:600px; max-height:calc(100vh - 40px); overflow-y:auto;
+    background:var(--canopy-2); border:1px solid var(--line); border-radius:10px; padding:26px 26px 28px;
+    box-shadow:0 24px 60px rgba(0,0,0,0.5);
+  }
+  .shot-modal-close{
+    position:absolute; top:10px; right:12px; background:transparent; border:none; color:var(--tan-2);
+    font-size:26px; line-height:1; cursor:pointer; padding:4px 9px; border-radius:4px;
+  }
+  .shot-modal-close:hover{color:var(--chalk);}
+  .sm-eyebrow{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:var(--gold); margin-bottom:6px;}
+  .sm-head h3{font-family:'Big Shoulders Display',sans-serif; font-size:34px; color:var(--chalk); line-height:0.95; text-transform:uppercase; letter-spacing:0.02em; margin:0;}
+  .sm-chips{display:flex; gap:8px; flex-wrap:wrap; margin-top:11px; align-items:center;}
+  .sm-angle{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--tan-2); border:1px solid var(--line); border-radius:999px; padding:5px 12px; text-transform:none;}
+  .sm-body{display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:22px;}
+  .sm-diagram{background:var(--canopy); border:1px solid var(--line); border-radius:8px; padding:10px 10px 4px;}
+  .sm-diagram-cap{display:flex; flex-wrap:wrap; gap:12px; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--tan-2); margin-top:10px;}
+  .sm-tilt{display:flex; flex-direction:column; align-items:center; margin-top:16px; padding-top:14px; border-top:1px dashed var(--line);}
+  .sm-tilt-cap{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--tan); margin-top:6px; text-align:center;}
+  .sm-block + .sm-block{margin-top:18px;}
+  .sm-block h5{font-family:'IBM Plex Mono',monospace; font-size:11.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--gold); margin:0 0 6px;}
+  .sm-block p{margin:0; font-size:14.5px; color:var(--tan); line-height:1.55;}
 
   @media (max-width:720px){
     .explain-grid, .decoder-grid, .factor-grid{grid-template-columns:1fr;}
+  }
+  @media (max-width:600px){
+    .sm-body{grid-template-columns:1fr;}
+    .sm-head h3{font-size:28px;}
   }
 </style>
 </head>
@@ -299,7 +338,7 @@
   <section class="matrix-section">
     <div class="section-kicker">04 — THE SHOT MATRIX</div>
     <h2>Nine shots from three angles</h2>
-    <p style="color:var(--tan); max-width:640px; margin-top:6px;">Release angle sets the tilt; the disc's own stability decides how far it runs before it comes back. Cross the two and you get the nine core shot shapes. Glyphs follow whichever hand you picked up top.</p>
+    <p style="color:var(--tan); max-width:640px; margin-top:6px;">Release angle sets the tilt; the disc's own stability decides how far it runs before it comes back. Cross the two and you get the nine core shot shapes. <b style="color:var(--chalk); font-weight:600;">Tap any square</b> for a full-size flight diagram, the release tilt, and when to reach for it. Everything follows whichever hand you picked up top.</p>
     <div class="matrix-scroll">
       <div class="matrix" id="matrix"></div>
     </div>
@@ -342,6 +381,39 @@
     </div>
   </section>
 
+</div>
+
+<div class="shot-modal" id="shot-modal">
+  <div class="shot-modal-backdrop" data-close></div>
+  <div class="shot-modal-panel" role="dialog" aria-modal="true" aria-labelledby="sm-title">
+    <button class="shot-modal-close" data-close aria-label="Close">&times;</button>
+    <div class="sm-head">
+      <div class="sm-eyebrow" id="sm-eyebrow"></div>
+      <h3 id="sm-title"></h3>
+      <div class="sm-chips">
+        <span class="stability-tag" id="sm-stab"></span>
+        <span class="sm-angle" id="sm-angle"></span>
+      </div>
+    </div>
+    <div class="sm-body">
+      <div class="sm-visual">
+        <div class="sm-diagram" id="sm-diagram"></div>
+        <div class="sm-diagram-cap">
+          <span>● tee (you)</span>
+          <span>◎ where it lands</span>
+          <span>┆ straight ahead</span>
+        </div>
+        <div class="sm-tilt">
+          <div id="sm-tilt"></div>
+          <div class="sm-tilt-cap" id="sm-tilt-cap"></div>
+        </div>
+      </div>
+      <div class="sm-text">
+        <div class="sm-block"><h5>What it looks like</h5><p id="sm-looks"></p></div>
+        <div class="sm-block"><h5>When to throw it</h5><p id="sm-when"></p></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -451,6 +523,7 @@ document.querySelectorAll('.hand-toggle button').forEach(btn=>{
     renderExamples();
     renderCompareStrip();
     renderMatrix();
+    if(openShotKey) openShot(openShotKey.stab, openShotKey.angle);
   });
 });
 
@@ -465,37 +538,64 @@ function renderExamples(){
 // in a 100x130 viewBox: tee at bottom-centre (50,120), landing at the open
 // circle. Left-hand throwers get the same shapes mirrored across x=50.
 // end:[x,y] is the landing circle; d is the path that reaches it.
+// looks/when are the plain-English detail shown in the tap-to-open modal.
 const MATRIX = {
   understable: {
     label:'UNDERSTABLE', note:'turn + fade < 0', stroke:'var(--teal)',
     cells:{
-      anhyzer:{shot:'Roller', desc:'Turns over hard, lands on edge and rolls out. Distance or getting around trouble.', d:'M 50 120 C 52 82 76 58 90 28', end:[90,28]},
-      flat:{shot:'Turnover', desc:'Flat release, banks right and rides it out — it never comes back.', d:'M 50 120 C 52 82 68 46 76 16', end:[76,16]},
-      hyzer:{shot:'Hyzer flip', desc:'Flips up from hyzer to flat and flies long and dead straight. The money line.', d:'M 50 120 C 44 84 48 44 52 14', end:[52,14]}
+      anhyzer:{shot:'Roller', desc:'Turns over hard, lands on edge and rolls out.', d:'M 50 120 C 52 82 76 58 90 28', end:[90,28],
+        looks:'The disc turns over hard to the right, tips onto its edge, touches down and rolls forward across the ground like a wheel.',
+        when:'Squeezing extra distance out of a flat, open fairway, or scooting under low branches — most of the trip happens on the ground, not in the air.'},
+      flat:{shot:'Turnover', desc:'Banks right and rides it out — never comes back.', d:'M 50 120 C 52 82 68 46 76 16', end:[76,16],
+        looks:'Thrown level, it banks over to the right early and keeps drifting that way the whole flight. It does not fade back left at the end.',
+        when:'Shaping a shot that needs to finish out to the right, or bending around an obstacle sitting on your right side.'},
+      hyzer:{shot:'Hyzer flip', desc:'Flips up to flat and flies long and dead straight.', d:'M 50 120 C 44 84 48 44 52 14', end:[52,14],
+        looks:'You release it tilted left, but it "flips up" to level within the first second or two, then flies long and dead straight down the line.',
+        when:'Your straightest, longest line. Reach for it when you want maximum distance with no hook at the end — tight, open, or wooded fairways alike.'}
     }
   },
   stable: {
     label:'STABLE', note:'turn + fade ≈ 0 or 1', stroke:'var(--gold)',
     cells:{
-      anhyzer:{shot:'Anhyzer', desc:'Holds the tilt out right, then eases gently back. Shaping around a corner.', d:'M 50 120 C 54 84 72 54 64 16', end:[64,16]},
-      flat:{shot:'Straight', desc:'The workhorse. Goes where you aim with a soft finish at the end.', d:'M 50 120 L 50 14', end:[50,14]},
-      hyzer:{shot:'Hyzer', desc:'Predictable, gentle fade back to the left. The safe controlled line.', d:'M 50 120 C 48 84 40 46 34 16', end:[34,16]}
+      anhyzer:{shot:'Anhyzer', desc:'Holds out right, then eases gently back.', d:'M 50 120 C 54 84 72 54 64 16', end:[64,16],
+        looks:'Holds the right-hand tilt out to the right, then gradually levels off and eases back toward the center as it slows down.',
+        when:'Bending a shot gently around a corner to the right without it turning into a runaway — a controlled, shapeable curve.'},
+      flat:{shot:'Straight', desc:'Goes where you aim, soft finish at the end.', d:'M 50 120 L 50 14', end:[50,14],
+        looks:'Goes basically wherever you point it, holding the line the whole way with only a soft, gentle drift left at the very end.',
+        when:'The dependable default. Open fairways, narrow tunnels, or any time you just need the disc to go straight and land near where you aimed.'},
+      hyzer:{shot:'Hyzer', desc:'Gentle, predictable fade back to the left.', d:'M 50 120 C 48 84 40 46 34 16', end:[34,16],
+        looks:'Leans gently left the whole way and fades a little further left as it lands — one smooth, predictable curve, no drama.',
+        when:'The safe, repeatable go-to. Curving around trouble on your left, or setting up a soft landing on a hyzer angle.'}
     }
   },
   overstable: {
     label:'OVERSTABLE', note:'turn + fade ≥ 2', stroke:'var(--rust)',
     cells:{
-      anhyzer:{shot:'Flex shot', desc:'Holds the anhyzer, then flexes hard back left — a big S for max distance.', d:'M 50 120 C 80 88 28 46 44 14', end:[44,14]},
-      flat:{shot:'Fade', desc:'Tracks fairly straight, then hooks reliably left at the finish.', d:'M 50 120 C 52 80 52 40 30 18', end:[30,18]},
-      hyzer:{shot:'Spike hyzer', desc:'Steep drop with little skip. Getting down fast over trouble.', d:'M 50 120 C 46 84 30 56 16 30', end:[16,30]}
+      anhyzer:{shot:'Flex shot', desc:'Holds the anhyzer, then flexes hard back left.', d:'M 50 120 C 80 88 28 46 44 14', end:[44,14],
+        looks:'You release it tilted hard to the right; it holds that line out right, then "flexes" back and finishes to the left — one big S-shape.',
+        when:'Maximum distance in the open, or carving around an obstacle first to the right and then back to the left. Also fights headwind well.'},
+      flat:{shot:'Fade', desc:'Tracks straight, then hooks reliably left.', d:'M 50 120 C 52 80 52 40 30 18', end:[30,18],
+        looks:'Tracks fairly straight for most of the flight, then hooks reliably to the left near the end and drops without much skip.',
+        when:'When you need a dependable left finish — attacking a basket tucked behind something on the left, or holding its line in a tailwind.'},
+      hyzer:{shot:'Spike hyzer', desc:'Steep drop, little skip. Get down over trouble.', d:'M 50 120 C 46 84 30 56 16 30', end:[16,30],
+        looks:'Thrown on a steep left-hand tilt, it drops almost straight down out of the sky with very little skip or roll-away once it lands.',
+        when:'Getting down fast over an obstacle, or landing on a tight spot — a shelf, an island, behind a wall — without the disc sliding past.'}
     }
   }
 };
 const ANGLES = [
-  {key:'anhyzer', name:'Anhyzer', sub:'tilted right'},
-  {key:'flat',    name:'Flat',    sub:'level'},
-  {key:'hyzer',   name:'Hyzer',   sub:'tilted left'}
+  {key:'anhyzer', name:'Anhyzer'},
+  {key:'flat',    name:'Flat'},
+  {key:'hyzer',   name:'Hyzer'}
 ];
+
+// Which way the rim tilts depends on the hand: RHBH anhyzer = right edge
+// down, hyzer = left edge down; a lefty is the mirror. Flat is level either way.
+function angleSub(angleKey, hand){
+  if(angleKey === 'flat') return 'level';
+  const edge = (angleKey === 'anhyzer') === (hand === 'RH') ? 'right' : 'left';
+  return 'tilted ' + edge;
+}
 
 function matrixGlyph(cell, stroke, hand){
   const flip = hand === 'RH' ? '' : ' transform="translate(100,0) scale(-1,1)"';
@@ -508,26 +608,113 @@ function matrixGlyph(cell, stroke, hand){
   </svg>`;
 }
 
+// Disc seen edge-on from behind the thrower, tilted for the release angle.
+// RHBH: anhyzer = right edge down, hyzer = left edge down. LH mirrors.
+function tiltDeg(angleKey, hand){
+  const base = angleKey === 'anhyzer' ? 1 : angleKey === 'hyzer' ? -1 : 0;
+  return base * 24 * (hand === 'RH' ? 1 : -1);
+}
+function tiltIcon(angleKey, hand, variant){
+  const deg = tiltDeg(angleKey, hand);
+  const big = variant === 'big';
+  const w = big ? 150 : 58, h = big ? 68 : 32;
+  const sw = big ? 3 : 2.2;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 100 46" xmlns="http://www.w3.org/2000/svg">
+    <line x1="8" y1="40" x2="92" y2="40" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <g transform="rotate(${deg} 50 24)">
+      <ellipse cx="50" cy="26" rx="30" ry="6.5" fill="rgba(244,239,224,0.05)" stroke="var(--tan-2)" stroke-width="${sw}"/>
+      <path d="M22 24 Q50 13 78 24" fill="none" stroke="var(--tan-2)" stroke-width="${sw}" stroke-linecap="round"/>
+    </g>
+  </svg>`;
+}
+function tiltCaption(angleKey, hand){
+  if(angleKey === 'flat') return 'Released flat and level.';
+  const edge = (angleKey === 'anhyzer') === (hand === 'RH') ? 'right' : 'left';
+  const name = angleKey === 'anhyzer' ? 'anhyzer' : 'hyzer';
+  return `Released on ${name} — ${edge} edge angled down.`;
+}
+
+// Big bird's-eye diagram for the modal: centre reference line, a tee marker
+// at the bottom, the flight path with a direction arrowhead, and a target
+// ring where it lands. Mirrors across x=50 for a left-hand thrower.
+function bigDiagram(cell, stroke, hand){
+  const flip = hand === 'RH' ? '' : ' transform="translate(100,0) scale(-1,1)"';
+  const [ex, ey] = cell.end;
+  return `<svg width="100%" height="240" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="sm-arrow" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="13" refX="7" refY="6" orient="auto">
+        <path d="M0 0 L11 6 L0 12 z" fill="${stroke}"/>
+      </marker>
+    </defs>
+    <line x1="50" y1="126" x2="50" y2="8" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <g${flip}>
+      <circle cx="${ex}" cy="${ey}" r="8.5" fill="none" stroke="${stroke}" stroke-width="1.6" opacity="0.45"/>
+      <path d="${cell.d}" fill="none" stroke="${stroke}" stroke-width="5" stroke-linecap="round" marker-end="url(#sm-arrow)"/>
+    </g>
+    <circle cx="50" cy="126" r="9" fill="none" stroke="${stroke}" stroke-width="1.5" opacity="0.4"/>
+    <circle cx="50" cy="126" r="4.5" fill="${stroke}"/>
+  </svg>`;
+}
+
 function renderMatrix(){
   const m = document.getElementById('matrix');
   let html = `<div class="m-corner"><span>stability <span class="ax">↓</span></span><span>release <span class="ax">→</span></span></div>`;
   ANGLES.forEach(a=>{
-    html += `<div class="m-colhead"><h4>${a.name}</h4><span>${a.sub}</span></div>`;
+    html += `<div class="m-colhead"><h4>${a.name}</h4><span>${angleSub(a.key, currentHand)}</span><div class="m-tiltmini">${tiltIcon(a.key, currentHand, 'mini')}</div></div>`;
   });
   ['understable','stable','overstable'].forEach(sk=>{
     const row = MATRIX[sk];
     html += `<div class="m-rowhead ${sk}"><h4>${row.label}</h4><span>${row.note}</span></div>`;
     ANGLES.forEach(a=>{
       const cell = row.cells[a.key];
-      html += `<div class="m-cell ${sk}">
+      html += `<div class="m-cell ${sk}" data-stab="${sk}" data-angle="${a.key}" role="button" tabindex="0" aria-label="${cell.shot} — ${row.label.toLowerCase()} on ${a.name.toLowerCase()}">
         <div class="m-glyph">${matrixGlyph(cell, row.stroke, currentHand)}</div>
         <div class="m-shot">${cell.shot}</div>
         <p class="m-desc">${cell.desc}</p>
+        <div class="m-more">details ›</div>
       </div>`;
     });
   });
   m.innerHTML = html;
 }
+
+// ---- Shot detail modal -------------------------------------------------
+let openShotKey = null;
+function openShot(stab, angle){
+  const row = MATRIX[stab];
+  const cell = row.cells[angle];
+  const a = ANGLES.find(x=>x.key === angle);
+  openShotKey = {stab, angle};
+  document.getElementById('sm-eyebrow').textContent = `${row.label} · ${a.name.toUpperCase()} RELEASE`;
+  document.getElementById('sm-title').textContent = cell.shot;
+  const stabTag = document.getElementById('sm-stab');
+  stabTag.textContent = row.label;
+  stabTag.className = 'stability-tag ' + stab;
+  document.getElementById('sm-angle').textContent = `${a.name} · ${angleSub(angle, currentHand)}`;
+  document.getElementById('sm-diagram').innerHTML = bigDiagram(cell, row.stroke, currentHand);
+  document.getElementById('sm-tilt').innerHTML = tiltIcon(angle, currentHand, 'big');
+  document.getElementById('sm-tilt-cap').textContent = tiltCaption(angle, currentHand);
+  document.getElementById('sm-looks').textContent = cell.looks;
+  document.getElementById('sm-when').textContent = cell.when;
+  document.getElementById('shot-modal').classList.add('open');
+}
+function closeShot(){
+  document.getElementById('shot-modal').classList.remove('open');
+  openShotKey = null;
+}
+
+const matrixEl = document.getElementById('matrix');
+matrixEl.addEventListener('click', e=>{
+  const cellEl = e.target.closest('.m-cell');
+  if(cellEl) openShot(cellEl.dataset.stab, cellEl.dataset.angle);
+});
+matrixEl.addEventListener('keydown', e=>{
+  if(e.key !== 'Enter' && e.key !== ' ') return;
+  const cellEl = e.target.closest('.m-cell');
+  if(cellEl){ e.preventDefault(); openShot(cellEl.dataset.stab, cellEl.dataset.angle); }
+});
+document.querySelectorAll('#shot-modal [data-close]').forEach(el=> el.addEventListener('click', closeShot));
+document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeShot(); });
 
 ['speed','glide','turn','fade'].forEach(id=>{
   document.getElementById(id).addEventListener('input', ()=>{
