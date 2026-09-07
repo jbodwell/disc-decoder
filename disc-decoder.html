@@ -42,13 +42,17 @@
   }
   .hero h1{font-size:clamp(44px,9vw,84px); font-weight:800; line-height:0.9; color:var(--chalk);}
   .hero-sub{max-width:560px; color:var(--tan); font-size:16px; margin-top:18px;}
-  .hand-toggle{display:flex; gap:8px; margin-top:26px; flex-wrap:wrap;}
-  .hand-toggle button{
-    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.05em;
-    background:transparent; border:1px solid var(--line); color:var(--tan);
-    padding:9px 14px; border-radius:2px; cursor:pointer; transition:all .15s ease;
+  .hand-note{
+    display:flex; align-items:flex-start; gap:12px; margin-top:26px; max-width:560px;
+    font-size:14px; color:var(--tan);
+    background:rgba(201,154,60,0.08); border-left:3px solid var(--gold);
+    padding:14px 16px; border-radius:0 4px 4px 0;
   }
-  .hand-toggle button.active{background:var(--gold); border-color:var(--gold); color:var(--ink); font-weight:600;}
+  .hand-note-tag{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; letter-spacing:0.08em;
+    color:var(--ink); background:var(--gold); padding:3px 8px; border-radius:3px; flex-shrink:0; margin-top:1px;
+  }
+  .hand-note b{color:var(--chalk); font-weight:600;}
 
   section{padding:52px 0; border-bottom:1px dashed var(--line);}
   section:last-child{border-bottom:none;}
@@ -131,8 +135,88 @@
   .legend-item h4{margin:0 0 3px; font-size:14px; color:var(--chalk); font-family:'IBM Plex Sans'; text-transform:none; font-weight:600;}
   .legend-item p{margin:0; font-size:13.5px; color:var(--tan);}
 
+  /* ---- Shot matrix ---- */
+  .matrix-scroll{overflow-x:auto; margin-top:26px; padding-bottom:6px;}
+  .matrix{
+    display:grid;
+    grid-template-columns:130px repeat(3,1fr);
+    gap:10px;
+    min-width:660px;
+  }
+  .m-corner{
+    display:flex; flex-direction:column; justify-content:flex-end; padding:6px 8px;
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.04em;
+    color:var(--tan-2); line-height:1.35;
+  }
+  .m-corner .ax{color:var(--gold);}
+  .m-colhead{
+    text-align:center; padding:10px 6px; border-radius:6px 6px 0 0;
+    background:var(--canopy-2); border:1px solid var(--line); border-bottom:none;
+  }
+  .m-colhead h4{font-family:'Big Shoulders Display',sans-serif; font-size:18px; color:var(--chalk); margin:0; letter-spacing:0.03em;}
+  .m-colhead span{display:block; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--tan-2); margin-top:3px; text-transform:none; letter-spacing:0.02em;}
+  .m-rowhead{
+    display:flex; flex-direction:column; justify-content:center; align-items:flex-start;
+    padding:10px 10px; border-radius:6px 0 0 6px; border:1px solid var(--line); border-right:none;
+    background:var(--canopy-2);
+  }
+  .m-rowhead h4{font-family:'Big Shoulders Display',sans-serif; font-size:15px; margin:0; letter-spacing:0.02em; line-height:1.05;}
+  .m-rowhead span{font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--tan-2); margin-top:4px; text-transform:none; letter-spacing:0.02em; line-height:1.35;}
+  .m-rowhead.understable h4{color:var(--teal);}
+  .m-rowhead.stable h4{color:var(--gold);}
+  .m-rowhead.overstable h4{color:var(--rust);}
+  .m-cell{
+    background:var(--canopy-2); border:1px solid var(--line); border-radius:6px;
+    padding:12px 12px 14px; display:flex; flex-direction:column; align-items:center; text-align:center;
+  }
+  .m-cell .m-glyph{display:flex; justify-content:center; height:96px; align-items:flex-end;}
+  .m-cell .m-shot{font-family:'Big Shoulders Display',sans-serif; font-size:17px; color:var(--chalk); letter-spacing:0.02em; margin:8px 0 4px; text-transform:uppercase;}
+  .m-cell .m-desc{font-size:12px; color:var(--tan); line-height:1.4; margin:0;}
+  .m-cell.understable{border-top:2px solid var(--teal-dim);}
+  .m-cell.stable{border-top:2px solid var(--gold);}
+  .m-cell.overstable{border-top:2px solid var(--rust-dim);}
+  .m-cell{cursor:pointer; position:relative; transition:border-color .15s ease, transform .15s ease, background .15s ease;}
+  .m-cell:hover, .m-cell:focus-visible{transform:translateY(-2px); background:#26362b; outline:none;}
+  .m-cell.understable:hover, .m-cell.understable:focus-visible{border-color:var(--teal);}
+  .m-cell.stable:hover, .m-cell.stable:focus-visible{border-color:var(--gold);}
+  .m-cell.overstable:hover, .m-cell.overstable:focus-visible{border-color:var(--rust);}
+  .m-more{font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.06em; color:var(--tan-2); margin-top:9px; opacity:0.7;}
+  .m-cell:hover .m-more, .m-cell:focus-visible .m-more{color:var(--gold); opacity:1;}
+  .m-tiltmini{display:flex; justify-content:center; margin-top:8px;}
+
+  /* ---- Shot detail modal ---- */
+  .shot-modal{display:none; position:fixed; inset:0; z-index:50; align-items:center; justify-content:center; padding:20px;}
+  .shot-modal.open{display:flex;}
+  .shot-modal-backdrop{position:absolute; inset:0; background:rgba(10,16,12,0.74);}
+  .shot-modal-panel{
+    position:relative; z-index:1; width:100%; max-width:600px; max-height:calc(100vh - 40px); overflow-y:auto;
+    background:var(--canopy-2); border:1px solid var(--line); border-radius:10px; padding:26px 26px 28px;
+    box-shadow:0 24px 60px rgba(0,0,0,0.5);
+  }
+  .shot-modal-close{
+    position:absolute; top:10px; right:12px; background:transparent; border:none; color:var(--tan-2);
+    font-size:26px; line-height:1; cursor:pointer; padding:4px 9px; border-radius:4px;
+  }
+  .shot-modal-close:hover{color:var(--chalk);}
+  .sm-eyebrow{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:var(--gold); margin-bottom:6px;}
+  .sm-head h3{font-family:'Big Shoulders Display',sans-serif; font-size:34px; color:var(--chalk); line-height:0.95; text-transform:uppercase; letter-spacing:0.02em; margin:0;}
+  .sm-chips{display:flex; gap:8px; flex-wrap:wrap; margin-top:11px; align-items:center;}
+  .sm-angle{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--tan-2); border:1px solid var(--line); border-radius:999px; padding:5px 12px; text-transform:none;}
+  .sm-body{display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:22px;}
+  .sm-diagram{background:var(--canopy); border:1px solid var(--line); border-radius:8px; padding:10px 10px 4px;}
+  .sm-diagram-cap{display:flex; flex-wrap:wrap; gap:12px; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--tan-2); margin-top:10px;}
+  .sm-tilt{display:flex; flex-direction:column; align-items:center; margin-top:16px; padding-top:14px; border-top:1px dashed var(--line);}
+  .sm-tilt-cap{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--tan); margin-top:6px; text-align:center;}
+  .sm-block + .sm-block{margin-top:18px;}
+  .sm-block h5{font-family:'IBM Plex Mono',monospace; font-size:11.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--gold); margin:0 0 6px;}
+  .sm-block p{margin:0; font-size:14.5px; color:var(--tan); line-height:1.55;}
+
   @media (max-width:720px){
     .explain-grid, .decoder-grid, .factor-grid{grid-template-columns:1fr;}
+  }
+  @media (max-width:600px){
+    .sm-body{grid-template-columns:1fr;}
+    .sm-head h3{font-size:28px;}
   }
 </style>
 </head>
@@ -143,9 +227,9 @@
     <div class="eyebrow">FIELD NOTES · INNOVA FLIGHT NUMBERS</div>
     <h1>THE DISC<br>DECODER</h1>
     <p class="hero-sub">Speed and Glide you've already got. This is for Turn and Fade — what they actually mean, why the scale looks broken, and what a little curved line on your disc can tell you faster than the numbers can.</p>
-    <div class="hand-toggle">
-      <button data-hand="RH" class="active">I throw backhand, right-handed</button>
-      <button data-hand="LH">I throw backhand, left-handed</button>
+    <div class="hand-note">
+      <span class="hand-note-tag">RHBH</span>
+      <span>Every direction, curve, and shot on this page is written for a <b>right-hand backhand</b> throw. Left is left, right is right — no mental math. (Lefty or forehand? Just flip left and right.)</span>
     </div>
   </header>
 
@@ -156,7 +240,7 @@
       <div class="explain-card turn">
         <div class="glyph" id="glyph-turn-example"></div>
         <h3>Turn <span class="range">+1 → −5</span></h3>
-        <p>What happens early — while the disc is still fast and spinning hard. A low (negative) number means it wants to roll over toward your anhyzer side. A number near +1 means it just refuses to.</p>
+        <p>What happens early — while the disc is still fast and spinning hard. A low (negative) number means it wants to roll over to the right (your anhyzer side). A number near +1 means it just refuses to.</p>
       </div>
       <div class="explain-card fade">
         <div class="glyph" id="glyph-fade-example"></div>
@@ -255,8 +339,17 @@
     </div>
   </section>
 
+  <section class="matrix-section">
+    <div class="section-kicker">04 — THE SHOT MATRIX</div>
+    <h2>Nine shots from three angles</h2>
+    <p style="color:var(--tan); max-width:640px; margin-top:6px;">Release angle sets the tilt; the disc's own stability decides how far it runs before it comes back. Cross the two and you get the nine core shot shapes. <b style="color:var(--chalk); font-weight:600;">Tap any square</b> for a full-size flight diagram, the release tilt, and when to reach for it. All shapes are for a right-hand backhand throw.</p>
+    <div class="matrix-scroll">
+      <div class="matrix" id="matrix"></div>
+    </div>
+  </section>
+
   <section class="marking">
-    <div class="section-kicker">04 — ON THE DISC</div>
+    <div class="section-kicker">05 — ON THE DISC</div>
     <h2>What's actually worth writing on it</h2>
     <p style="color:var(--tan); max-width:600px; margin-top:6px;">Innova already stamps Speed/Glide/Turn/Fade on the disc. What's missing is the at-a-glance read. Three small marks by the flight plate cover it:</p>
     <div class="rim-demo">
@@ -294,6 +387,39 @@
 
 </div>
 
+<div class="shot-modal" id="shot-modal">
+  <div class="shot-modal-backdrop" data-close></div>
+  <div class="shot-modal-panel" role="dialog" aria-modal="true" aria-labelledby="sm-title">
+    <button class="shot-modal-close" data-close aria-label="Close">&times;</button>
+    <div class="sm-head">
+      <div class="sm-eyebrow" id="sm-eyebrow"></div>
+      <h3 id="sm-title"></h3>
+      <div class="sm-chips">
+        <span class="stability-tag" id="sm-stab"></span>
+        <span class="sm-angle" id="sm-angle"></span>
+      </div>
+    </div>
+    <div class="sm-body">
+      <div class="sm-visual">
+        <div class="sm-diagram" id="sm-diagram"></div>
+        <div class="sm-diagram-cap">
+          <span>● tee (you)</span>
+          <span>◎ where it lands</span>
+          <span>┆ straight ahead</span>
+        </div>
+        <div class="sm-tilt">
+          <div id="sm-tilt"></div>
+          <div class="sm-tilt-cap" id="sm-tilt-cap"></div>
+        </div>
+      </div>
+      <div class="sm-text">
+        <div class="sm-block"><h5>What it looks like</h5><p id="sm-looks"></p></div>
+        <div class="sm-block"><h5>When to throw it</h5><p id="sm-when"></p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // Calibrated against Innova's own published flight-path charts (9 discs
 // checked directly: Roadrunner, Leopard, Valkyrie, Wraith, Colt, Mako3,
@@ -314,10 +440,9 @@ function netDrift(turn, fade){
   return rightPull * 0.7 - leftPull * 0.3; // positive = bows right (RHBH)
 }
 
-function flightPoints(turn, fade, hand){
+function flightPoints(turn, fade){
   const sx=100, sy=232, endY=26;
-  const dir = hand === 'RH' ? 1 : -1;
-  let ex = sx + netDrift(turn, fade) * 32 * dir;
+  let ex = sx + netDrift(turn, fade) * 32; // positive drift bows right (RHBH)
   ex = Math.max(15, Math.min(185, ex)); // keep on-canvas for extreme slider values no real disc uses
   return {start: {x:sx, y:sy}, end: {x:ex, y:endY}};
 }
@@ -325,27 +450,25 @@ function flightPoints(turn, fade, hand){
 // A single "ease-in-out" cubic: vertical tangent at the tee, vertical
 // tangent arriving at the landing spot, bowing through the middle - this
 // is the shape every one of the real charts actually has.
-function flightPathD(turn, fade, hand){
-  const {start, end} = flightPoints(turn, fade, hand);
+function flightPathD(turn, fade){
+  const {start, end} = flightPoints(turn, fade);
   const h = start.y - end.y;
   return `M ${start.x} ${start.y} `
        + `C ${start.x} ${start.y - 0.5*h} ${end.x} ${end.y + 0.5*h} ${end.x} ${end.y}`;
 }
 
-function glyphSVG(turn, fade, hand, opts){
+function glyphSVG(turn, fade, opts){
   opts = opts || {};
   const w = opts.w || 200, h = opts.h || 260;
   const stroke = opts.stroke || 'var(--chalk)';
-  const {start, end} = flightPoints(turn, fade, hand);
-  const d = flightPathD(turn, fade, hand);
+  const {start, end} = flightPoints(turn, fade);
+  const d = flightPathD(turn, fade);
   return `<svg width="${w}" height="${h}" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">
     <circle cx="${start.x}" cy="${start.y}" r="5" fill="${stroke}" opacity="0.5"/>
     <path d="${d}" fill="none" stroke="${stroke}" stroke-width="5" stroke-linecap="round"/>
     <circle cx="${end.x}" cy="${end.y}" r="6" fill="none" stroke="${stroke}" stroke-width="3.5"/>
   </svg>`;
 }
-
-let currentHand = 'RH';
 
 function stabilityInfo(turn, fade){
   const sum = turn + fade;
@@ -383,7 +506,7 @@ function renderLive(){
   document.getElementById('fade-val').textContent = fade;
 
   const info = stabilityInfo(turn, fade);
-  document.getElementById('glyph-live').innerHTML = glyphSVG(turn, fade, currentHand, {w:160, h:210, stroke: info.color});
+  document.getElementById('glyph-live').innerHTML = glyphSVG(turn, fade, {w:160, h:210, stroke: info.color});
 
   const tag = document.getElementById('stability-tag');
   tag.textContent = `${info.label}  ·  turn+fade = ${turn+fade}`;
@@ -392,21 +515,183 @@ function renderLive(){
   document.getElementById('advice-text').innerHTML = adviceFor(speed, glide, turn, fade);
 }
 
-document.querySelectorAll('.hand-toggle button').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.hand-toggle button').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    currentHand = btn.dataset.hand;
-    renderLive();
-    renderExamples();
-    renderCompareStrip();
-  });
-});
-
 function renderExamples(){
-  document.getElementById('glyph-turn-example').innerHTML = glyphSVG(-4, 0, currentHand, {w:130, h:170, stroke:'var(--teal)'});
-  document.getElementById('glyph-fade-example').innerHTML = glyphSVG(0, 4, currentHand, {w:130, h:170, stroke:'var(--rust)'});
+  document.getElementById('glyph-turn-example').innerHTML = glyphSVG(-4, 0, {w:130, h:170, stroke:'var(--teal)'});
+  document.getElementById('glyph-fade-example').innerHTML = glyphSVG(0, 4, {w:130, h:170, stroke:'var(--rust)'});
 }
+
+// ---- Shot matrix -------------------------------------------------------
+// Nine archetypal shot shapes for a right-hand backhand (RHBH) thrower, one
+// per (stability x release-angle) pair. Each shape is a hand-drawn flight
+// path in a 100x130 viewBox: tee at bottom-centre (50,120), landing at the
+// open circle. end:[x,y] is the landing circle; d is the path that reaches
+// it. looks/when are the plain-English detail shown in the tap-to-open modal.
+const MATRIX = {
+  understable: {
+    label:'UNDERSTABLE', note:'turn + fade < 0', stroke:'var(--teal)',
+    cells:{
+      anhyzer:{shot:'Roller', desc:'Turns over hard, lands on edge and rolls out.', d:'M 50 120 C 52 82 76 58 90 28', end:[90,28],
+        looks:'The disc turns over hard to the right, tips onto its edge, touches down and rolls forward across the ground like a wheel.',
+        when:'Squeezing extra distance out of a flat, open fairway, or scooting under low branches — most of the trip happens on the ground, not in the air.'},
+      flat:{shot:'Turnover', desc:'Banks right and rides it out — never comes back.', d:'M 50 120 C 52 82 68 46 76 16', end:[76,16],
+        looks:'Thrown level, it banks over to the right early and keeps drifting that way the whole flight. It does not fade back left at the end.',
+        when:'Shaping a shot that needs to finish out to the right, or bending around an obstacle sitting on your right side.'},
+      hyzer:{shot:'Hyzer flip', desc:'Flips up to flat and flies long and dead straight.', d:'M 50 120 C 44 84 48 44 52 14', end:[52,14],
+        looks:'You release it tilted left, but it "flips up" to level within the first second or two, then flies long and dead straight down the line.',
+        when:'Your straightest, longest line. Reach for it when you want maximum distance with no hook at the end — tight, open, or wooded fairways alike.'}
+    }
+  },
+  stable: {
+    label:'STABLE', note:'turn + fade ≈ 0 or 1', stroke:'var(--gold)',
+    cells:{
+      anhyzer:{shot:'Anhyzer', desc:'Holds out right, then eases gently back.', d:'M 50 120 C 54 84 72 54 64 16', end:[64,16],
+        looks:'Holds the right-hand tilt out to the right, then gradually levels off and eases back toward the center as it slows down.',
+        when:'Bending a shot gently around a corner to the right without it turning into a runaway — a controlled, shapeable curve.'},
+      flat:{shot:'Straight', desc:'Goes where you aim, soft finish at the end.', d:'M 50 120 L 50 14', end:[50,14],
+        looks:'Goes basically wherever you point it, holding the line the whole way with only a soft, gentle drift left at the very end.',
+        when:'The dependable default. Open fairways, narrow tunnels, or any time you just need the disc to go straight and land near where you aimed.'},
+      hyzer:{shot:'Hyzer', desc:'Gentle, predictable fade back to the left.', d:'M 50 120 C 48 84 40 46 34 16', end:[34,16],
+        looks:'Leans gently left the whole way and fades a little further left as it lands — one smooth, predictable curve, no drama.',
+        when:'The safe, repeatable go-to. Curving around trouble on your left, or setting up a soft landing on a hyzer angle.'}
+    }
+  },
+  overstable: {
+    label:'OVERSTABLE', note:'turn + fade ≥ 2', stroke:'var(--rust)',
+    cells:{
+      anhyzer:{shot:'Flex shot', desc:'Holds the anhyzer, then flexes hard back left.', d:'M 50 120 C 80 88 28 46 44 14', end:[44,14],
+        looks:'You release it tilted hard to the right; it holds that line out right, then "flexes" back and finishes to the left — one big S-shape.',
+        when:'Maximum distance in the open, or carving around an obstacle first to the right and then back to the left. Also fights headwind well.'},
+      flat:{shot:'Fade', desc:'Tracks straight, then hooks reliably left.', d:'M 50 120 C 52 80 52 40 30 18', end:[30,18],
+        looks:'Tracks fairly straight for most of the flight, then hooks reliably to the left near the end and drops without much skip.',
+        when:'When you need a dependable left finish — attacking a basket tucked behind something on the left, or holding its line in a tailwind.'},
+      hyzer:{shot:'Spike hyzer', desc:'Steep drop, little skip. Get down over trouble.', d:'M 50 120 C 46 84 30 56 16 30', end:[16,30],
+        looks:'Thrown on a steep left-hand tilt, it drops almost straight down out of the sky with very little skip or roll-away once it lands.',
+        when:'Getting down fast over an obstacle, or landing on a tight spot — a shelf, an island, behind a wall — without the disc sliding past.'}
+    }
+  }
+};
+const ANGLES = [
+  {key:'anhyzer', name:'Anhyzer'},
+  {key:'flat',    name:'Flat'},
+  {key:'hyzer',   name:'Hyzer'}
+];
+
+// RHBH: anhyzer = right edge down (tilted right), hyzer = left edge down.
+function angleSub(angleKey){
+  if(angleKey === 'flat') return 'level';
+  return angleKey === 'anhyzer' ? 'tilted right' : 'tilted left';
+}
+
+function matrixGlyph(cell, stroke){
+  return `<svg width="76" height="96" viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="120" r="4" fill="${stroke}" opacity="0.5"/>
+    <path d="${cell.d}" fill="none" stroke="${stroke}" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="${cell.end[0]}" cy="${cell.end[1]}" r="5.5" fill="none" stroke="${stroke}" stroke-width="3.5"/>
+  </svg>`;
+}
+
+// Disc seen edge-on from behind the thrower, tilted for the release angle.
+// RHBH: anhyzer = right edge down, hyzer = left edge down.
+function tiltDeg(angleKey){
+  return angleKey === 'anhyzer' ? 24 : angleKey === 'hyzer' ? -24 : 0;
+}
+function tiltIcon(angleKey, variant){
+  const deg = tiltDeg(angleKey);
+  const big = variant === 'big';
+  const w = big ? 150 : 58, h = big ? 68 : 32;
+  const sw = big ? 3 : 2.2;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 100 46" xmlns="http://www.w3.org/2000/svg">
+    <line x1="8" y1="40" x2="92" y2="40" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <g transform="rotate(${deg} 50 24)">
+      <ellipse cx="50" cy="26" rx="30" ry="6.5" fill="rgba(244,239,224,0.05)" stroke="var(--tan-2)" stroke-width="${sw}"/>
+      <path d="M22 24 Q50 13 78 24" fill="none" stroke="var(--tan-2)" stroke-width="${sw}" stroke-linecap="round"/>
+    </g>
+  </svg>`;
+}
+function tiltCaption(angleKey){
+  if(angleKey === 'flat') return 'Released flat and level.';
+  const edge = angleKey === 'anhyzer' ? 'right' : 'left';
+  return `Released on ${angleKey} — ${edge} edge angled down.`;
+}
+
+// Big bird's-eye diagram for the modal: centre reference line, a tee marker
+// at the bottom, the flight path with a direction arrowhead, and a target
+// ring where it lands. Everything is drawn for a right-hand backhand throw.
+function bigDiagram(cell, stroke){
+  const [ex, ey] = cell.end;
+  return `<svg width="100%" height="240" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="sm-arrow" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="13" refX="7" refY="6" orient="auto">
+        <path d="M0 0 L11 6 L0 12 z" fill="${stroke}"/>
+      </marker>
+    </defs>
+    <line x1="50" y1="126" x2="50" y2="8" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <circle cx="${ex}" cy="${ey}" r="8.5" fill="none" stroke="${stroke}" stroke-width="1.6" opacity="0.45"/>
+    <path d="${cell.d}" fill="none" stroke="${stroke}" stroke-width="5" stroke-linecap="round" marker-end="url(#sm-arrow)"/>
+    <circle cx="50" cy="126" r="9" fill="none" stroke="${stroke}" stroke-width="1.5" opacity="0.4"/>
+    <circle cx="50" cy="126" r="4.5" fill="${stroke}"/>
+  </svg>`;
+}
+
+function renderMatrix(){
+  const m = document.getElementById('matrix');
+  let html = `<div class="m-corner"><span>stability <span class="ax">↓</span></span><span>release <span class="ax">→</span></span></div>`;
+  ANGLES.forEach(a=>{
+    html += `<div class="m-colhead"><h4>${a.name}</h4><span>${angleSub(a.key)}</span><div class="m-tiltmini">${tiltIcon(a.key, 'mini')}</div></div>`;
+  });
+  ['understable','stable','overstable'].forEach(sk=>{
+    const row = MATRIX[sk];
+    html += `<div class="m-rowhead ${sk}"><h4>${row.label}</h4><span>${row.note}</span></div>`;
+    ANGLES.forEach(a=>{
+      const cell = row.cells[a.key];
+      html += `<div class="m-cell ${sk}" data-stab="${sk}" data-angle="${a.key}" role="button" tabindex="0" aria-label="${cell.shot} — ${row.label.toLowerCase()} on ${a.name.toLowerCase()}">
+        <div class="m-glyph">${matrixGlyph(cell, row.stroke)}</div>
+        <div class="m-shot">${cell.shot}</div>
+        <p class="m-desc">${cell.desc}</p>
+        <div class="m-more">details ›</div>
+      </div>`;
+    });
+  });
+  m.innerHTML = html;
+}
+
+// ---- Shot detail modal -------------------------------------------------
+let openShotKey = null;
+function openShot(stab, angle){
+  const row = MATRIX[stab];
+  const cell = row.cells[angle];
+  const a = ANGLES.find(x=>x.key === angle);
+  openShotKey = {stab, angle};
+  document.getElementById('sm-eyebrow').textContent = `${row.label} · ${a.name.toUpperCase()} RELEASE`;
+  document.getElementById('sm-title').textContent = cell.shot;
+  const stabTag = document.getElementById('sm-stab');
+  stabTag.textContent = row.label;
+  stabTag.className = 'stability-tag ' + stab;
+  document.getElementById('sm-angle').textContent = `${a.name} · ${angleSub(angle)}`;
+  document.getElementById('sm-diagram').innerHTML = bigDiagram(cell, row.stroke);
+  document.getElementById('sm-tilt').innerHTML = tiltIcon(angle, 'big');
+  document.getElementById('sm-tilt-cap').textContent = tiltCaption(angle);
+  document.getElementById('sm-looks').textContent = cell.looks;
+  document.getElementById('sm-when').textContent = cell.when;
+  document.getElementById('shot-modal').classList.add('open');
+}
+function closeShot(){
+  document.getElementById('shot-modal').classList.remove('open');
+  openShotKey = null;
+}
+
+const matrixEl = document.getElementById('matrix');
+matrixEl.addEventListener('click', e=>{
+  const cellEl = e.target.closest('.m-cell');
+  if(cellEl) openShot(cellEl.dataset.stab, cellEl.dataset.angle);
+});
+matrixEl.addEventListener('keydown', e=>{
+  if(e.key !== 'Enter' && e.key !== ' ') return;
+  const cellEl = e.target.closest('.m-cell');
+  if(cellEl){ e.preventDefault(); openShot(cellEl.dataset.stab, cellEl.dataset.angle); }
+});
+document.querySelectorAll('#shot-modal [data-close]').forEach(el=> el.addEventListener('click', closeShot));
+document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeShot(); });
 
 ['speed','glide','turn','fade'].forEach(id=>{
   document.getElementById(id).addEventListener('input', ()=>{
@@ -443,7 +728,7 @@ function renderCompareStrip(){
   strip.innerHTML = DISC_TABLE.map(d=>{
     const info = stabilityInfo(d.turn, d.fade);
     return `<div class="compare-item">
-      <div class="glyph-mini">${glyphSVG(d.turn, d.fade, currentHand, {w:64, h:84, stroke: info.color})}</div>
+      <div class="glyph-mini">${glyphSVG(d.turn, d.fade, {w:64, h:84, stroke: info.color})}</div>
       <div class="name">${d.name}</div>
     </div>`;
   }).join('');
@@ -452,6 +737,7 @@ function renderCompareStrip(){
 renderLive();
 renderExamples();
 renderCompareStrip();
+renderMatrix();
 </script>
 </body>
 </html>
