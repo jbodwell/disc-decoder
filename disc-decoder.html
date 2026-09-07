@@ -42,13 +42,17 @@
   }
   .hero h1{font-size:clamp(44px,9vw,84px); font-weight:800; line-height:0.9; color:var(--chalk);}
   .hero-sub{max-width:560px; color:var(--tan); font-size:16px; margin-top:18px;}
-  .hand-toggle{display:flex; gap:8px; margin-top:26px; flex-wrap:wrap;}
-  .hand-toggle button{
-    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.05em;
-    background:transparent; border:1px solid var(--line); color:var(--tan);
-    padding:9px 14px; border-radius:2px; cursor:pointer; transition:all .15s ease;
+  .hand-note{
+    display:flex; align-items:flex-start; gap:12px; margin-top:26px; max-width:560px;
+    font-size:14px; color:var(--tan);
+    background:rgba(201,154,60,0.08); border-left:3px solid var(--gold);
+    padding:14px 16px; border-radius:0 4px 4px 0;
   }
-  .hand-toggle button.active{background:var(--gold); border-color:var(--gold); color:var(--ink); font-weight:600;}
+  .hand-note-tag{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; letter-spacing:0.08em;
+    color:var(--ink); background:var(--gold); padding:3px 8px; border-radius:3px; flex-shrink:0; margin-top:1px;
+  }
+  .hand-note b{color:var(--chalk); font-weight:600;}
 
   section{padding:52px 0; border-bottom:1px dashed var(--line);}
   section:last-child{border-bottom:none;}
@@ -223,9 +227,9 @@
     <div class="eyebrow">FIELD NOTES · INNOVA FLIGHT NUMBERS</div>
     <h1>THE DISC<br>DECODER</h1>
     <p class="hero-sub">Speed and Glide you've already got. This is for Turn and Fade — what they actually mean, why the scale looks broken, and what a little curved line on your disc can tell you faster than the numbers can.</p>
-    <div class="hand-toggle">
-      <button data-hand="RH" class="active">I throw backhand, right-handed</button>
-      <button data-hand="LH">I throw backhand, left-handed</button>
+    <div class="hand-note">
+      <span class="hand-note-tag">RHBH</span>
+      <span>Every direction, curve, and shot on this page is written for a <b>right-hand backhand</b> throw. Left is left, right is right — no mental math. (Lefty or forehand? Just flip left and right.)</span>
     </div>
   </header>
 
@@ -236,7 +240,7 @@
       <div class="explain-card turn">
         <div class="glyph" id="glyph-turn-example"></div>
         <h3>Turn <span class="range">+1 → −5</span></h3>
-        <p>What happens early — while the disc is still fast and spinning hard. A low (negative) number means it wants to roll over toward your anhyzer side. A number near +1 means it just refuses to.</p>
+        <p>What happens early — while the disc is still fast and spinning hard. A low (negative) number means it wants to roll over to the right (your anhyzer side). A number near +1 means it just refuses to.</p>
       </div>
       <div class="explain-card fade">
         <div class="glyph" id="glyph-fade-example"></div>
@@ -338,7 +342,7 @@
   <section class="matrix-section">
     <div class="section-kicker">04 — THE SHOT MATRIX</div>
     <h2>Nine shots from three angles</h2>
-    <p style="color:var(--tan); max-width:640px; margin-top:6px;">Release angle sets the tilt; the disc's own stability decides how far it runs before it comes back. Cross the two and you get the nine core shot shapes. <b style="color:var(--chalk); font-weight:600;">Tap any square</b> for a full-size flight diagram, the release tilt, and when to reach for it. Everything follows whichever hand you picked up top.</p>
+    <p style="color:var(--tan); max-width:640px; margin-top:6px;">Release angle sets the tilt; the disc's own stability decides how far it runs before it comes back. Cross the two and you get the nine core shot shapes. <b style="color:var(--chalk); font-weight:600;">Tap any square</b> for a full-size flight diagram, the release tilt, and when to reach for it. All shapes are for a right-hand backhand throw.</p>
     <div class="matrix-scroll">
       <div class="matrix" id="matrix"></div>
     </div>
@@ -436,10 +440,9 @@ function netDrift(turn, fade){
   return rightPull * 0.7 - leftPull * 0.3; // positive = bows right (RHBH)
 }
 
-function flightPoints(turn, fade, hand){
+function flightPoints(turn, fade){
   const sx=100, sy=232, endY=26;
-  const dir = hand === 'RH' ? 1 : -1;
-  let ex = sx + netDrift(turn, fade) * 32 * dir;
+  let ex = sx + netDrift(turn, fade) * 32; // positive drift bows right (RHBH)
   ex = Math.max(15, Math.min(185, ex)); // keep on-canvas for extreme slider values no real disc uses
   return {start: {x:sx, y:sy}, end: {x:ex, y:endY}};
 }
@@ -447,27 +450,25 @@ function flightPoints(turn, fade, hand){
 // A single "ease-in-out" cubic: vertical tangent at the tee, vertical
 // tangent arriving at the landing spot, bowing through the middle - this
 // is the shape every one of the real charts actually has.
-function flightPathD(turn, fade, hand){
-  const {start, end} = flightPoints(turn, fade, hand);
+function flightPathD(turn, fade){
+  const {start, end} = flightPoints(turn, fade);
   const h = start.y - end.y;
   return `M ${start.x} ${start.y} `
        + `C ${start.x} ${start.y - 0.5*h} ${end.x} ${end.y + 0.5*h} ${end.x} ${end.y}`;
 }
 
-function glyphSVG(turn, fade, hand, opts){
+function glyphSVG(turn, fade, opts){
   opts = opts || {};
   const w = opts.w || 200, h = opts.h || 260;
   const stroke = opts.stroke || 'var(--chalk)';
-  const {start, end} = flightPoints(turn, fade, hand);
-  const d = flightPathD(turn, fade, hand);
+  const {start, end} = flightPoints(turn, fade);
+  const d = flightPathD(turn, fade);
   return `<svg width="${w}" height="${h}" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">
     <circle cx="${start.x}" cy="${start.y}" r="5" fill="${stroke}" opacity="0.5"/>
     <path d="${d}" fill="none" stroke="${stroke}" stroke-width="5" stroke-linecap="round"/>
     <circle cx="${end.x}" cy="${end.y}" r="6" fill="none" stroke="${stroke}" stroke-width="3.5"/>
   </svg>`;
 }
-
-let currentHand = 'RH';
 
 function stabilityInfo(turn, fade){
   const sum = turn + fade;
@@ -505,7 +506,7 @@ function renderLive(){
   document.getElementById('fade-val').textContent = fade;
 
   const info = stabilityInfo(turn, fade);
-  document.getElementById('glyph-live').innerHTML = glyphSVG(turn, fade, currentHand, {w:160, h:210, stroke: info.color});
+  document.getElementById('glyph-live').innerHTML = glyphSVG(turn, fade, {w:160, h:210, stroke: info.color});
 
   const tag = document.getElementById('stability-tag');
   tag.textContent = `${info.label}  ·  turn+fade = ${turn+fade}`;
@@ -514,31 +515,17 @@ function renderLive(){
   document.getElementById('advice-text').innerHTML = adviceFor(speed, glide, turn, fade);
 }
 
-document.querySelectorAll('.hand-toggle button').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.hand-toggle button').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    currentHand = btn.dataset.hand;
-    renderLive();
-    renderExamples();
-    renderCompareStrip();
-    renderMatrix();
-    if(openShotKey) openShot(openShotKey.stab, openShotKey.angle);
-  });
-});
-
 function renderExamples(){
-  document.getElementById('glyph-turn-example').innerHTML = glyphSVG(-4, 0, currentHand, {w:130, h:170, stroke:'var(--teal)'});
-  document.getElementById('glyph-fade-example').innerHTML = glyphSVG(0, 4, currentHand, {w:130, h:170, stroke:'var(--rust)'});
+  document.getElementById('glyph-turn-example').innerHTML = glyphSVG(-4, 0, {w:130, h:170, stroke:'var(--teal)'});
+  document.getElementById('glyph-fade-example').innerHTML = glyphSVG(0, 4, {w:130, h:170, stroke:'var(--rust)'});
 }
 
 // ---- Shot matrix -------------------------------------------------------
-// Nine archetypal shot shapes for a right-hand backhand thrower, one per
-// (stability x release-angle) pair. Each shape is a hand-drawn flight path
-// in a 100x130 viewBox: tee at bottom-centre (50,120), landing at the open
-// circle. Left-hand throwers get the same shapes mirrored across x=50.
-// end:[x,y] is the landing circle; d is the path that reaches it.
-// looks/when are the plain-English detail shown in the tap-to-open modal.
+// Nine archetypal shot shapes for a right-hand backhand (RHBH) thrower, one
+// per (stability x release-angle) pair. Each shape is a hand-drawn flight
+// path in a 100x130 viewBox: tee at bottom-centre (50,120), landing at the
+// open circle. end:[x,y] is the landing circle; d is the path that reaches
+// it. looks/when are the plain-English detail shown in the tap-to-open modal.
 const MATRIX = {
   understable: {
     label:'UNDERSTABLE', note:'turn + fade < 0', stroke:'var(--teal)',
@@ -589,33 +576,27 @@ const ANGLES = [
   {key:'hyzer',   name:'Hyzer'}
 ];
 
-// Which way the rim tilts depends on the hand: RHBH anhyzer = right edge
-// down, hyzer = left edge down; a lefty is the mirror. Flat is level either way.
-function angleSub(angleKey, hand){
+// RHBH: anhyzer = right edge down (tilted right), hyzer = left edge down.
+function angleSub(angleKey){
   if(angleKey === 'flat') return 'level';
-  const edge = (angleKey === 'anhyzer') === (hand === 'RH') ? 'right' : 'left';
-  return 'tilted ' + edge;
+  return angleKey === 'anhyzer' ? 'tilted right' : 'tilted left';
 }
 
-function matrixGlyph(cell, stroke, hand){
-  const flip = hand === 'RH' ? '' : ' transform="translate(100,0) scale(-1,1)"';
+function matrixGlyph(cell, stroke){
   return `<svg width="76" height="96" viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg">
-    <g${flip}>
-      <circle cx="50" cy="120" r="4" fill="${stroke}" opacity="0.5"/>
-      <path d="${cell.d}" fill="none" stroke="${stroke}" stroke-width="5" stroke-linecap="round"/>
-      <circle cx="${cell.end[0]}" cy="${cell.end[1]}" r="5.5" fill="none" stroke="${stroke}" stroke-width="3.5"/>
-    </g>
+    <circle cx="50" cy="120" r="4" fill="${stroke}" opacity="0.5"/>
+    <path d="${cell.d}" fill="none" stroke="${stroke}" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="${cell.end[0]}" cy="${cell.end[1]}" r="5.5" fill="none" stroke="${stroke}" stroke-width="3.5"/>
   </svg>`;
 }
 
 // Disc seen edge-on from behind the thrower, tilted for the release angle.
-// RHBH: anhyzer = right edge down, hyzer = left edge down. LH mirrors.
-function tiltDeg(angleKey, hand){
-  const base = angleKey === 'anhyzer' ? 1 : angleKey === 'hyzer' ? -1 : 0;
-  return base * 24 * (hand === 'RH' ? 1 : -1);
+// RHBH: anhyzer = right edge down, hyzer = left edge down.
+function tiltDeg(angleKey){
+  return angleKey === 'anhyzer' ? 24 : angleKey === 'hyzer' ? -24 : 0;
 }
-function tiltIcon(angleKey, hand, variant){
-  const deg = tiltDeg(angleKey, hand);
+function tiltIcon(angleKey, variant){
+  const deg = tiltDeg(angleKey);
   const big = variant === 'big';
   const w = big ? 150 : 58, h = big ? 68 : 32;
   const sw = big ? 3 : 2.2;
@@ -627,18 +608,16 @@ function tiltIcon(angleKey, hand, variant){
     </g>
   </svg>`;
 }
-function tiltCaption(angleKey, hand){
+function tiltCaption(angleKey){
   if(angleKey === 'flat') return 'Released flat and level.';
-  const edge = (angleKey === 'anhyzer') === (hand === 'RH') ? 'right' : 'left';
-  const name = angleKey === 'anhyzer' ? 'anhyzer' : 'hyzer';
-  return `Released on ${name} — ${edge} edge angled down.`;
+  const edge = angleKey === 'anhyzer' ? 'right' : 'left';
+  return `Released on ${angleKey} — ${edge} edge angled down.`;
 }
 
 // Big bird's-eye diagram for the modal: centre reference line, a tee marker
 // at the bottom, the flight path with a direction arrowhead, and a target
-// ring where it lands. Mirrors across x=50 for a left-hand thrower.
-function bigDiagram(cell, stroke, hand){
-  const flip = hand === 'RH' ? '' : ' transform="translate(100,0) scale(-1,1)"';
+// ring where it lands. Everything is drawn for a right-hand backhand throw.
+function bigDiagram(cell, stroke){
   const [ex, ey] = cell.end;
   return `<svg width="100%" height="240" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -647,10 +626,8 @@ function bigDiagram(cell, stroke, hand){
       </marker>
     </defs>
     <line x1="50" y1="126" x2="50" y2="8" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="4 4"/>
-    <g${flip}>
-      <circle cx="${ex}" cy="${ey}" r="8.5" fill="none" stroke="${stroke}" stroke-width="1.6" opacity="0.45"/>
-      <path d="${cell.d}" fill="none" stroke="${stroke}" stroke-width="5" stroke-linecap="round" marker-end="url(#sm-arrow)"/>
-    </g>
+    <circle cx="${ex}" cy="${ey}" r="8.5" fill="none" stroke="${stroke}" stroke-width="1.6" opacity="0.45"/>
+    <path d="${cell.d}" fill="none" stroke="${stroke}" stroke-width="5" stroke-linecap="round" marker-end="url(#sm-arrow)"/>
     <circle cx="50" cy="126" r="9" fill="none" stroke="${stroke}" stroke-width="1.5" opacity="0.4"/>
     <circle cx="50" cy="126" r="4.5" fill="${stroke}"/>
   </svg>`;
@@ -660,7 +637,7 @@ function renderMatrix(){
   const m = document.getElementById('matrix');
   let html = `<div class="m-corner"><span>stability <span class="ax">↓</span></span><span>release <span class="ax">→</span></span></div>`;
   ANGLES.forEach(a=>{
-    html += `<div class="m-colhead"><h4>${a.name}</h4><span>${angleSub(a.key, currentHand)}</span><div class="m-tiltmini">${tiltIcon(a.key, currentHand, 'mini')}</div></div>`;
+    html += `<div class="m-colhead"><h4>${a.name}</h4><span>${angleSub(a.key)}</span><div class="m-tiltmini">${tiltIcon(a.key, 'mini')}</div></div>`;
   });
   ['understable','stable','overstable'].forEach(sk=>{
     const row = MATRIX[sk];
@@ -668,7 +645,7 @@ function renderMatrix(){
     ANGLES.forEach(a=>{
       const cell = row.cells[a.key];
       html += `<div class="m-cell ${sk}" data-stab="${sk}" data-angle="${a.key}" role="button" tabindex="0" aria-label="${cell.shot} — ${row.label.toLowerCase()} on ${a.name.toLowerCase()}">
-        <div class="m-glyph">${matrixGlyph(cell, row.stroke, currentHand)}</div>
+        <div class="m-glyph">${matrixGlyph(cell, row.stroke)}</div>
         <div class="m-shot">${cell.shot}</div>
         <p class="m-desc">${cell.desc}</p>
         <div class="m-more">details ›</div>
@@ -690,10 +667,10 @@ function openShot(stab, angle){
   const stabTag = document.getElementById('sm-stab');
   stabTag.textContent = row.label;
   stabTag.className = 'stability-tag ' + stab;
-  document.getElementById('sm-angle').textContent = `${a.name} · ${angleSub(angle, currentHand)}`;
-  document.getElementById('sm-diagram').innerHTML = bigDiagram(cell, row.stroke, currentHand);
-  document.getElementById('sm-tilt').innerHTML = tiltIcon(angle, currentHand, 'big');
-  document.getElementById('sm-tilt-cap').textContent = tiltCaption(angle, currentHand);
+  document.getElementById('sm-angle').textContent = `${a.name} · ${angleSub(angle)}`;
+  document.getElementById('sm-diagram').innerHTML = bigDiagram(cell, row.stroke);
+  document.getElementById('sm-tilt').innerHTML = tiltIcon(angle, 'big');
+  document.getElementById('sm-tilt-cap').textContent = tiltCaption(angle);
   document.getElementById('sm-looks').textContent = cell.looks;
   document.getElementById('sm-when').textContent = cell.when;
   document.getElementById('shot-modal').classList.add('open');
@@ -751,7 +728,7 @@ function renderCompareStrip(){
   strip.innerHTML = DISC_TABLE.map(d=>{
     const info = stabilityInfo(d.turn, d.fade);
     return `<div class="compare-item">
-      <div class="glyph-mini">${glyphSVG(d.turn, d.fade, currentHand, {w:64, h:84, stroke: info.color})}</div>
+      <div class="glyph-mini">${glyphSVG(d.turn, d.fade, {w:64, h:84, stroke: info.color})}</div>
       <div class="name">${d.name}</div>
     </div>`;
   }).join('');
